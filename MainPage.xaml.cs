@@ -61,7 +61,7 @@ namespace UP
 
         private void Button2_Click(object sender, RoutedEventArgs e)
         {
-            takeVideo();
+            mediaVideoStart();// takeVideo();
         }
 
         private void Button3_Click(object sender, RoutedEventArgs e)

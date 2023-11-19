@@ -1,0 +1,41 @@
+﻿<Page
+    x:Class="UP.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UP"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Image x:Name="imageControl" Width="200" Height="200"/>
+
+        <Button
+            Content="Photo"
+            x:Name="button1"
+            Height="100"
+            Width="100"
+            Margin="100, 200, 10, 02" Click="Button1_Click">
+        </Button>
+        <Button
+            Content="Film start"
+            x:Name="button2"
+            
+            Height="100"
+            Width="100"
+            Margin="100,-100,0,0" Click="Button2_Click">
+        </Button>
+        <Button
+            Content="Film stop"
+            x:Name="button3"
+    
+            Height="100"
+            Width="100"
+            Margin="100,-400,0,0" Click="Button3_Click">
+        </Button>
+        <MediaPlayerElement 
+            x:Name="mediaPlayerElement" Width="1280" Height="960" AreTransportControlsEnabled="True" Margin="200, 0, 0, 0"
+        />
+    </Grid>
+</Page>

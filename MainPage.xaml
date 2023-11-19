@@ -10,7 +10,15 @@
 
     <Grid>
         <Image x:Name="imageControl" Width="200" Height="200"/>
-
+        <ListBox Name="cameraList" HorizontalContentAlignment="Stretch" Margin="100, 0, 100, 750">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <ComboBox Name="comboBoxFPS" HorizontalContentAlignment="Stretch" Margin="100,750,300,0" SelectionChanged="VideoSettings_Changed">         
+        </ComboBox>
         <Button
             Content="Photo"
             x:Name="button1"
@@ -34,8 +42,8 @@
             Width="100"
             Margin="100,-400,0,0" Click="Button3_Click">
         </Button>
-        <MediaPlayerElement 
+        <!--MediaPlayerElement 
             x:Name="mediaPlayerElement" Width="1280" Height="960" AreTransportControlsEnabled="True" Margin="200, 0, 0, 0"
-        />
+        /-->
     </Grid>
 </Page>

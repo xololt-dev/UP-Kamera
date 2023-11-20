@@ -6,6 +6,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
@@ -13,8 +14,11 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.Media.Capture;
+using Windows.ApplicationModel;
+using Windows.System.Display;
 using Windows.Storage;
 using Windows.Graphics.Imaging;
+using Windows.Graphics.Display;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Storage.Streams;
 using Windows.Media.Core;
@@ -23,6 +27,10 @@ using Windows.Media.MediaProperties;
 using Windows.Storage.FileProperties;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
+using Windows.Media.Devices;
+using Windows.Media.Capture.Frames;
+using Windows.Media;
+using System.Linq.Expressions;
 
 
 //Szablon elementu Pusta strona jest udokumentowany na stronie https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x415
@@ -35,13 +43,17 @@ namespace UP
     public sealed partial class MainPage : Page
     {
         MediaCapture mediaCapture;
+        DisplayRequest displayRequest = new DisplayRequest();
         LowLagMediaRecording _mediaRecording;
         bool isPreviewing = true;
+        string chosenCameraID = string.Empty;        
 
         public MainPage()
         {
             this.InitializeComponent();
+
             initMediaCapture();
+            // Application.Current.Suspending += Application_Suspending;
         }
 
         private async void initMediaCapture()
@@ -154,7 +166,7 @@ namespace UP
             captureUI.VideoSettings.Format = CameraCaptureUIVideoFormat.Mp4;
 
             StorageFile videoFile = await captureUI.CaptureFileAsync(CameraCaptureUIMode.Video);
-
+            
             if (videoFile == null)
             {
                 // User cancelled photo capture
@@ -249,7 +261,7 @@ namespace UP
 
             // Order them by resolution then frame rate
             allStreamProperties = allStreamProperties.OrderByDescending(x => x.Height * x.Width).ThenByDescending(x => x.FrameRate);
-
+            
             // Populate the combo box with the entries
             foreach (var property in allStreamProperties)
             {
@@ -268,6 +280,359 @@ namespace UP
                 var encodingProperties = (selectedItem.Tag as StreamPropertiesHelper).EncodingProperties;
                 await mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.VideoRecord, encodingProperties);
             }
+        }
+
+        private async void cameraList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // CleanupCameraAsync();
+            StopPreviewAsync();
+            mediaCapture.Dispose();
+            mediaCapture = null;
+
+            string name = (sender as ListBox).SelectedItem.ToString();
+            
+            chosenCameraID = await getDeviceIDFromName(name);
+
+            // mediaCapture.Dispose();
+
+            mediaCaptureInit();
+
+            // uiExposure();
+        }
+
+        private async Task<string> getDeviceIDFromName(string name)
+        {
+            string ID = string.Empty;
+            
+            // Finds all video capture devices
+            DeviceInformationCollection devices = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
+
+            foreach (var device in devices)
+            {
+                if (device.Name == name)
+                {
+                    ID = device.Id;
+                    break;
+                }
+            }
+
+            return ID;
+        }
+
+        private async void mediaCaptureInit()
+        {
+            mediaCapture = new MediaCapture();
+
+            MediaCaptureInitializationSettings settings = new MediaCaptureInitializationSettings();
+            settings.VideoDeviceId = chosenCameraID;
+            settings.StreamingCaptureMode = StreamingCaptureMode.Video;
+
+            await mediaCapture.InitializeAsync(settings);
+
+            await StartPreviewAsync();
+
+            uiExposure();
+
+            comboBoxFPS.Items.Clear();
+            PopulateStreamPropertiesUI(MediaStreamType.VideoRecord, comboBoxFPS);
+
+            var focusControl = mediaCapture.VideoDeviceController.FocusControl;
+
+            if (focusControl.Supported)
+            {
+                CafFocusRadioButton.Visibility = focusControl.SupportedFocusModes.Contains(FocusMode.Continuous)
+                    ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else
+            {
+                CafFocusRadioButton.Visibility = Visibility.Collapsed;
+            }
+
+            var whiteBalanceControl = mediaCapture.VideoDeviceController.WhiteBalanceControl;
+
+            if (whiteBalanceControl.Supported)
+            {
+                WbSlider.Visibility = Visibility.Visible;
+                WbComboBox.Visibility = Visibility.Visible;
+
+                if (WbComboBox.ItemsSource == null)
+                {
+                    WbComboBox.ItemsSource = Enum.GetValues(typeof(ColorTemperaturePreset)).Cast<ColorTemperaturePreset>();
+                }
+
+                WbComboBox.SelectedItem = whiteBalanceControl.Preset;
+
+                if (whiteBalanceControl.Max - whiteBalanceControl.Min > whiteBalanceControl.Step)
+                {
+
+                    WbSlider.Minimum = whiteBalanceControl.Min;
+                    WbSlider.Maximum = whiteBalanceControl.Max;
+                    WbSlider.StepFrequency = whiteBalanceControl.Step;
+
+                    WbSlider.ValueChanged -= WbSlider_ValueChanged;
+                    WbSlider.Value = whiteBalanceControl.Value;
+                    WbSlider.ValueChanged += WbSlider_ValueChanged;
+                }
+                else
+                {
+                    WbSlider.Visibility = Visibility.Collapsed;
+                }
+            }
+            else
+            {
+                WbSlider.Visibility = Visibility.Collapsed;
+                WbComboBox.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void uiExposure()
+        {
+            var exposureControl = mediaCapture.VideoDeviceController.ExposureControl;
+
+            if (exposureControl.Supported)
+            {
+                ExposureAutoCheckBox.Visibility = Visibility.Visible;
+                ExposureSlider.Visibility = Visibility.Visible;
+
+                ExposureAutoCheckBox.IsChecked = exposureControl.Auto;
+
+                ExposureSlider.Minimum = exposureControl.Min.Ticks;
+                ExposureSlider.Maximum = exposureControl.Max.Ticks;
+                ExposureSlider.StepFrequency = exposureControl.Step.Ticks;
+
+                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
+                var value = exposureControl.Value;
+                ExposureSlider.Value = value.Ticks;
+                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
+            }
+            else
+            {
+                ExposureAutoCheckBox.Visibility = Visibility.Collapsed;
+                ExposureSlider.Visibility = Visibility.Visible;
+
+                
+                ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Min;
+                ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Max;
+                ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Brightness.Capabilities.Step;
+
+                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
+                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
+            }
+        }
+        private async void ExposureSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            double xd = (sender as Slider).Value;
+            // var value = TimeSpan.FromTicks((long)(sender as Slider).Value);
+            try {
+                mediaCapture.VideoDeviceController.Exposure.TrySetValue(xd);
+            }
+            catch
+            {
+
+            }
+            // await mediaCapture.VideoDeviceController.Exposure.TrySetValue(xd);
+            // await mediaCapture.VideoDeviceController.ExposureControl.SetValueAsync(value);
+        }
+
+        private async void ExposureCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Auto exposure only supported while preview stream is running.
+                return;
+            }
+
+            var autoExposure = ((sender as CheckBox).IsChecked == true);
+            await mediaCapture.VideoDeviceController.ExposureControl.SetAutoAsync(autoExposure);
+        }
+        private async void CafFocusRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Autofocus only supported while preview stream is running.
+                return;
+            }
+
+            var focusControl = mediaCapture.VideoDeviceController.FocusControl;
+            await focusControl.UnlockAsync();
+            var settings = new FocusSettings { Mode = FocusMode.Continuous, AutoFocusRange = AutoFocusRange.FullRange };
+            focusControl.Configure(settings);
+            await focusControl.FocusAsync();
+        }
+
+        private async void WbComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Do not set white balance values unless the preview stream is running.
+                return;
+            }
+
+            var selected = (ColorTemperaturePreset)WbComboBox.SelectedItem;
+            WbSlider.IsEnabled = (selected == ColorTemperaturePreset.Manual);
+            await mediaCapture.VideoDeviceController.WhiteBalanceControl.SetPresetAsync(selected);
+
+        }
+
+        private async void WbSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Do not set white balance values unless the preview stream is running.
+                return;
+            }
+
+            var value = (sender as Slider).Value;
+            await mediaCapture.VideoDeviceController.WhiteBalanceControl.SetValueAsync((uint)value);
+        }
+
+        private async Task StartPreviewAsync()
+        {
+            /*
+            try
+            {
+
+                mediaCapture = new MediaCapture();
+                await mediaCapture.InitializeAsync();
+
+                displayRequest.RequestActive();
+                DisplayInformation.AutoRotationPreferences = DisplayOrientations.Landscape;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // This will be thrown if the user denied access to the camera in privacy settings
+                System.Diagnostics.Debug.WriteLine("The app was denied access to the camera");
+                return;
+            }
+            */
+            displayRequest.RequestActive();
+            DisplayInformation.AutoRotationPreferences = DisplayOrientations.Landscape;
+
+
+            PreviewControl.Source = mediaCapture;
+            await mediaCapture.StartPreviewAsync();
+            isPreviewing = true;
+
+            /* try
+            {
+                
+            }
+            catch (System.IO.FileLoadException)
+            {
+                mediaCapture.CaptureDeviceExclusiveControlStatusChanged += _mediaCapture_CaptureDeviceExclusiveControlStatusChanged;
+            }
+            */
+        }
+
+        private async void _mediaCapture_CaptureDeviceExclusiveControlStatusChanged(MediaCapture sender, MediaCaptureDeviceExclusiveControlStatusChangedEventArgs args)
+        {
+            if (args.Status == MediaCaptureDeviceExclusiveControlStatus.SharedReadOnlyAvailable)
+            {
+                System.Diagnostics.Debug.WriteLine("The camera preview can't be displayed because another app has exclusive access");
+            }
+            else if (args.Status == MediaCaptureDeviceExclusiveControlStatus.ExclusiveControlAvailable && !isPreviewing)
+            {
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
+                {
+                    await StartPreviewAsync();
+                });
+            }
+        }
+
+        private async Task CleanupCameraAsync()
+        {
+            if (mediaCapture != null)
+            {
+                if (isPreviewing)
+                {
+                    await mediaCapture.StopPreviewAsync();
+                }
+
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                {
+                    PreviewControl.Source = null;
+                    if (displayRequest != null)
+                    {
+                        displayRequest.RequestRelease();
+                    }
+
+                    mediaCapture.Dispose();
+                    mediaCapture = null;
+                });
+            }
+        }
+
+        private async Task StopPreviewAsync()
+        {
+            // Stop the preview
+            isPreviewing = false;
+            await mediaCapture.StopPreviewAsync();
+
+            // Use the dispatcher because this method is sometimes called from non-UI threads
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                // Cleanup the UI
+                PreviewControl.Source = null;
+
+                // Allow the device screen to sleep now that the preview is stopped
+                displayRequest.RequestRelease();
+            });
+        }
+
+        protected async override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            await CleanupCameraAsync();
+        }
+
+        private async void Application_Suspending(object sender, SuspendingEventArgs e)
+        {
+            // Handle global application events only if this page is active
+            if (Frame.CurrentSourcePageType == typeof(MainPage))
+            {
+                var deferral = e.SuspendingOperation.GetDeferral();
+                await CleanupCameraAsync();
+                deferral.Complete();
+            }
+        }
+
+        private void MatchPreviewAspectRatio(MediaStreamType streamType, ComboBox comboBox)
+        {
+            // Query all properties of the specified stream type
+            IEnumerable<StreamPropertiesHelper> allVideoProperties =
+                mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(streamType).Select(x => new StreamPropertiesHelper(x));
+
+            // Query the current preview settings
+            StreamPropertiesHelper previewProperties = new StreamPropertiesHelper(mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview));
+
+            // Get all formats that have the same-ish aspect ratio as the preview
+            // Allow for some tolerance in the aspect ratio comparison
+            const double ASPECT_RATIO_TOLERANCE = 0.015;
+            var matchingFormats = allVideoProperties.Where(x => Math.Abs(x.AspectRatio - previewProperties.AspectRatio) < ASPECT_RATIO_TOLERANCE);
+
+            // Order them by resolution then frame rate
+            allVideoProperties = matchingFormats.OrderByDescending(x => x.Height * x.Width).ThenByDescending(x => x.FrameRate);
+
+            // Clear out old entries and populate the video combo box with new matching entries
+            comboBox.Items.Clear();
+            foreach (var property in allVideoProperties)
+            {
+                ComboBoxItem comboBoxItem = new ComboBoxItem();
+                comboBoxItem.Content = property.GetFriendlyName();
+                comboBoxItem.Tag = property;
+                comboBox.Items.Add(comboBoxItem);
+            }
+            comboBox.SelectedIndex = -1;
+        }
+
+        private void Button4_Click(object sender, RoutedEventArgs e)
+        {
+            takePhoto();
+            mediaCapture.VideoDeviceController.Brightness.TrySetValue(mediaCapture.VideoDeviceController.Brightness.Capabilities.Min);
+        }
+
+        private void Button5_Click(object sender, RoutedEventArgs e)
+        {
+            takeVideo();
         }
     }
 

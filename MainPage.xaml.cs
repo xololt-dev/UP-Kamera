@@ -285,9 +285,12 @@ namespace UP
         private async void cameraList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // CleanupCameraAsync();
-            StopPreviewAsync();
-            mediaCapture.Dispose();
-            mediaCapture = null;
+            if (isPreviewing)
+            {
+                StopPreviewAsync();
+                mediaCapture.Dispose();
+                mediaCapture = null;
+            }
 
             string name = (sender as ListBox).SelectedItem.ToString();
             
@@ -347,7 +350,48 @@ namespace UP
             {
                 CafFocusRadioButton.Visibility = Visibility.Collapsed;
             }
+            uiWhiteBalance();
+        }
 
+        private void uiExposure()
+        {
+            var exposureControl = mediaCapture.VideoDeviceController.ExposureControl;
+
+            if (exposureControl.Supported)
+            {
+                ExposureAutoCheckBox.Visibility = Visibility.Visible;
+                ExposureSlider.Visibility = Visibility.Visible;
+
+                ExposureAutoCheckBox.IsChecked = exposureControl.Auto;
+
+                ExposureSlider.Minimum = exposureControl.Min.Ticks;
+                ExposureSlider.Maximum = exposureControl.Max.Ticks;
+                ExposureSlider.StepFrequency = exposureControl.Step.Ticks;
+
+                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
+                var value = exposureControl.Value;
+                ExposureSlider.Value = value.Ticks;
+                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
+            }
+            else
+            {
+                ExposureAutoCheckBox.Visibility = Visibility.Collapsed;
+                ExposureSlider.Visibility = Visibility.Visible;
+                
+                ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Min;
+                ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Max;
+                ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Brightness.Capabilities.Step;
+
+                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
+                double value;
+                mediaCapture.VideoDeviceController.Brightness.TryGetValue(out value);
+                ExposureSlider.Value = (double)value;
+                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
+            }
+        }
+
+        private void uiWhiteBalance()
+        {
             var whiteBalanceControl = mediaCapture.VideoDeviceController.WhiteBalanceControl;
 
             if (whiteBalanceControl.Supported)
@@ -380,56 +424,40 @@ namespace UP
             }
             else
             {
-                WbSlider.Visibility = Visibility.Collapsed;
                 WbComboBox.Visibility = Visibility.Collapsed;
+                if (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Supported)
+                {
+                    WbSlider.Visibility = Visibility.Visible;
+
+                    double currentWB = 0;
+                    if (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Max - mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Min > mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Step)
+                    {
+
+                        WbSlider.Minimum = mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Min;
+                        WbSlider.Maximum = mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Max;
+                        WbSlider.StepFrequency = mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Step;
+
+                        WbSlider.ValueChanged -= WbSlider_ValueChanged;
+                        mediaCapture.VideoDeviceController.WhiteBalance.TryGetValue(out currentWB);
+                        WbSlider.Value = currentWB;
+                        WbSlider.ValueChanged += WbSlider_ValueChanged;
+                    }
+                }
+                else
+                {
+                    WbSlider.Visibility = Visibility.Collapsed;
+                }
             }
         }
-
-        private void uiExposure()
+        private /*async*/ void ExposureSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
-            var exposureControl = mediaCapture.VideoDeviceController.ExposureControl;
+            double xd = ExposureSlider.Value; // (sender as Slider).Value;
 
-            if (exposureControl.Supported)
-            {
-                ExposureAutoCheckBox.Visibility = Visibility.Visible;
-                ExposureSlider.Visibility = Visibility.Visible;
-
-                ExposureAutoCheckBox.IsChecked = exposureControl.Auto;
-
-                ExposureSlider.Minimum = exposureControl.Min.Ticks;
-                ExposureSlider.Maximum = exposureControl.Max.Ticks;
-                ExposureSlider.StepFrequency = exposureControl.Step.Ticks;
-
-                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
-                var value = exposureControl.Value;
-                ExposureSlider.Value = value.Ticks;
-                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
-            }
-            else
-            {
-                ExposureAutoCheckBox.Visibility = Visibility.Collapsed;
-                ExposureSlider.Visibility = Visibility.Visible;
-
-                
-                ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Min;
-                ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Max;
-                ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Brightness.Capabilities.Step;
-
-                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
-                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
-            }
-        }
-        private async void ExposureSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-        {
-            double xd = (sender as Slider).Value;
             // var value = TimeSpan.FromTicks((long)(sender as Slider).Value);
-            try {
-                mediaCapture.VideoDeviceController.Exposure.TrySetValue(xd);
-            }
-            catch
-            {
+            mediaCapture.VideoDeviceController.Exposure.TrySetValue(ExposureSlider.Value);
+            mediaCapture.VideoDeviceController.Exposure.TrySetValue(mediaCapture.VideoDeviceController.Exposure.Capabilities.Min);
+            // mediaCapture.VideoDeviceController.Exposure.TrySetValue(xd);
 
-            }
             // await mediaCapture.VideoDeviceController.Exposure.TrySetValue(xd);
             // await mediaCapture.VideoDeviceController.ExposureControl.SetValueAsync(value);
         }
@@ -471,7 +499,6 @@ namespace UP
             var selected = (ColorTemperaturePreset)WbComboBox.SelectedItem;
             WbSlider.IsEnabled = (selected == ColorTemperaturePreset.Manual);
             await mediaCapture.VideoDeviceController.WhiteBalanceControl.SetPresetAsync(selected);
-
         }
 
         private async void WbSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
@@ -482,8 +509,8 @@ namespace UP
                 return;
             }
 
-            var value = (sender as Slider).Value;
-            await mediaCapture.VideoDeviceController.WhiteBalanceControl.SetValueAsync((uint)value);
+            double value = (sender as Slider).Value;
+            mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value);
         }
 
         private async Task StartPreviewAsync()

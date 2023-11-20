@@ -66,8 +66,8 @@
             x:Name="mediaPlayerElement" Width="1280" Height="960" AreTransportControlsEnabled="True" Margin="200, 0, 0, 0"
         /-->
         <CaptureElement Name="PreviewControl" Stretch="Uniform" Margin="200, 200"/>
-        <Slider Name="ExposureSlider" ValueChanged="ExposureSlider_ValueChanged"/>
-        <TextBlock Name="ExposureTextBlock" Text="{Binding ElementName=ExposureSlider,Path=Value}"/>
+        <TextBlock Name="ExposureTextBlock" Text="{Binding ElementName=ExposureSlider,Path=Value}" Margin="50,950,50,0" AllowFocusOnInteraction="False" IsTapEnabled="False"/>
+        <Slider Name="ExposureSlider" ValueChanged="ExposureSlider_ValueChanged" Margin="50,950,50,0"/>
         <CheckBox Name="ExposureAutoCheckBox" Content="Auto" Checked="ExposureCheckBox_CheckedChanged" Unchecked="ExposureCheckBox_CheckedChanged"/>
     </Grid>
 </Page>

@@ -32,7 +32,6 @@ using Windows.Media.Capture.Frames;
 using Windows.Media;
 using System.Linq.Expressions;
 
-
 //Szablon elementu Pusta strona jest udokumentowany na stronie https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x415
 
 namespace UP
@@ -53,6 +52,7 @@ namespace UP
             this.InitializeComponent();
 
             initMediaCapture();
+            ExposureSlider.Visibility = Visibility.Visible;
             // Application.Current.Suspending += Application_Suspending;
         }
 
@@ -473,6 +473,17 @@ namespace UP
             var autoExposure = ((sender as CheckBox).IsChecked == true);
             await mediaCapture.VideoDeviceController.ExposureControl.SetAutoAsync(autoExposure);
         }
+        private void WbCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Auto exposure only supported while preview stream is running.
+                return;
+            }
+
+            var autoWb = ((sender as CheckBox).IsChecked == true);
+            mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(autoWb);
+        }
         private async void CafFocusRadioButton_Checked(object sender, RoutedEventArgs e)
         {
             if (!isPreviewing)
@@ -510,7 +521,10 @@ namespace UP
             }
 
             double value = (sender as Slider).Value;
-            mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value);
+            // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
+            WbAutoCheckBox.IsChecked = false;
+            if (mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value))
+                WbTextBox.Text = value.ToString();
         }
 
         private async Task StartPreviewAsync()

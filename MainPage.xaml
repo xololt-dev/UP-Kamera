@@ -9,26 +9,45 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <Image x:Name="imageControl" Width="1280" Height="720" Margin="200, 250, 0, 0"/>
-        <RadioButton Content="CAF" Name="CafFocusRadioButton" Checked="CafFocusRadioButton_Checked" Margin="0, 200, 0, 0"/>
-        <Slider Name="WbSlider" ValueChanged="WbSlider_ValueChanged"/>
-        <TextBlock Name="WbTextBox" Text="{Binding ElementName=WbSlider,Path=Value}" Visibility="{Binding ElementName=WbSlider,Path=Visibility}"/>
-        <ComboBox Name="WbComboBox" SelectionChanged="WbComboBox_SelectionChanged"/>
-        <ListBox Name="cameraList" HorizontalContentAlignment="Stretch" Margin="100, 0, 100, 750" SelectionChanged="cameraList_SelectionChanged">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="110" />
+            <ColumnDefinition Width="110" />
+            <ColumnDefinition Width="110" />
+            <ColumnDefinition Width="150" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="3*" />
+            <RowDefinition Height="110" />
+            <RowDefinition Height="110" />
+            <RowDefinition Height="5" />
+        </Grid.RowDefinitions>
+        <Image 
+            x:Name="imageControl" 
+            Grid.Row="1" 
+            Grid.Column="1" 
+            Grid.ColumnSpan="4"/>
+        <RadioButton Content="CAF" Name="CafFocusRadioButton" Checked="CafFocusRadioButton_Checked" Grid.Column="0" Grid.Row="1"/>
+        <ListBox Name="cameraList" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="0" HorizontalContentAlignment="Stretch" SelectionChanged="cameraList_SelectionChanged">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <ComboBox Name="comboBoxFPS" HorizontalContentAlignment="Stretch" Margin="100,750,300,0" SelectionChanged="VideoSettings_Changed">         
+        <ComboBox Name="comboBoxFPS" HorizontalContentAlignment="Stretch" Grid.Column="0" Grid.Row="2" Margin="33,0,0,0" SelectionChanged="VideoSettings_Changed">
         </ComboBox>
         <Button
             Content="Photo"
             x:Name="button1"
             Height="100"
             Width="100"
-            Margin="100, 200, 10, 02" Click="Button1_Click">
+            Grid.Column="3"
+            Grid.Row="2"
+            HorizontalAlignment="Center"
+            Click="Button1_Click">
         </Button>
         <Button
             Content="Film start"
@@ -36,7 +55,10 @@
             
             Height="100"
             Width="100"
-            Margin="100,-100,0,0" Click="Button2_Click">
+            Grid.Column="2"
+            Grid.Row="3"
+            HorizontalAlignment="Center"
+            Click="Button2_Click">
         </Button>
         <Button
             Content="Zrób zdjęcie default"
@@ -44,7 +66,10 @@
             
             Height="100"
             Width="100"
-            Margin="100,800,0,0" Click="Button4_Click">
+            Grid.Column="4"
+            Grid.Row="2"
+            HorizontalAlignment="Center"
+            Click="Button4_Click">
         </Button>
         <Button
             Content="Zrób film default"
@@ -52,7 +77,10 @@
             
             Height="100"
             Width="100"
-            Margin="250,800,0,0" Click="Button5_Click">
+            Grid.Column="4"
+            Grid.Row="3"
+            HorizontalAlignment="Center"
+            Click="Button5_Click">
         </Button>
         <Button
             Content="Film stop"
@@ -60,14 +88,29 @@
     
             Height="100"
             Width="100"
-            Margin="100,-400,0,0" Click="Button3_Click">
+            Grid.Column="3"
+            Grid.Row="3"
+            HorizontalAlignment="Center"
+            Click="Button3_Click">
         </Button>
         <!--MediaPlayerElement 
             x:Name="mediaPlayerElement" Width="1280" Height="960" AreTransportControlsEnabled="True" Margin="200, 0, 0, 0"
         /-->
-        <CaptureElement Name="PreviewControl" Stretch="Uniform" Margin="200, 200"/>
-        <TextBlock Name="ExposureTextBlock" Text="{Binding ElementName=ExposureSlider,Path=Value}" Margin="50,950,50,0" AllowFocusOnInteraction="False" IsTapEnabled="False"/>
-        <Slider Name="ExposureSlider" ValueChanged="ExposureSlider_ValueChanged" Margin="50,950,50,0"/>
-        <CheckBox Name="ExposureAutoCheckBox" Content="Auto" Checked="ExposureCheckBox_CheckedChanged" Unchecked="ExposureCheckBox_CheckedChanged"/>
+        <CaptureElement Name="PreviewControl" Stretch="Uniform" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="1"/>
+
+        <TextBlock Name="WbTextBox" Text="{Binding ElementName=WbSlider,Path=Value}" Visibility="{Binding ElementName=WbSlider,Path=Visibility}" Grid.Row="2" Grid.Column="1" Margin="0,25,0,0"/>
+        <ComboBox Name="WbComboBox" SelectionChanged="WbComboBox_SelectionChanged" Grid.Column="0" Grid.Row="3"/>
+        <TextBlock Name="ExposureTextBlock" Text="{Binding ElementName=ExposureSlider,Path=Value}" Margin="25,800,1400,125" AllowFocusOnInteraction="False" IsTapEnabled="False"/>
+        <CheckBox Name="ExposureAutoCheckBox" Content="Auto" Checked="ExposureCheckBox_CheckedChanged" Unchecked="ExposureCheckBox_CheckedChanged" Margin="0,0,1300,0"/>
+        <CheckBox Name="WbAutoCheckBox" Content="Auto" Checked="WbCheckBox_CheckedChanged" Unchecked="WbCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="2"/>
+        <Slider x:Name="WbSlider" 
+                ValueChanged="WbSlider_ValueChanged"
+                Grid.Column="1" 
+                Grid.Row="2"/>
+        <Slider 
+            x:Name="ExposureSlider" 
+            ValueChanged="ExposureSlider_ValueChanged" 
+            Grid.Column="1"
+            Grid.Row="3"/>
     </Grid>
 </Page>

@@ -52,7 +52,7 @@ namespace UP
             this.InitializeComponent();
 
             initMediaCapture();
-            ExposureSlider.Visibility = Visibility.Visible;
+            //ExposureSlider.Visibility = Visibility.Visible;
             // Application.Current.Suspending += Application_Suspending;
         }
 
@@ -300,7 +300,7 @@ namespace UP
 
             mediaCaptureInit();
 
-            // uiExposure();
+            //uiExposure();
         }
 
         private async Task<string> getDeviceIDFromName(string name)
@@ -334,61 +334,18 @@ namespace UP
 
             await StartPreviewAsync();
 
-            uiExposure();
+            //uiExposure();
 
             comboBoxFPS.Items.Clear();
             PopulateStreamPropertiesUI(MediaStreamType.VideoRecord, comboBoxFPS);
 
             var focusControl = mediaCapture.VideoDeviceController.FocusControl;
 
-            if (focusControl.Supported)
-            {
-                CafFocusRadioButton.Visibility = focusControl.SupportedFocusModes.Contains(FocusMode.Continuous)
-                    ? Visibility.Visible : Visibility.Collapsed;
-            }
-            else
-            {
-                CafFocusRadioButton.Visibility = Visibility.Collapsed;
-            }
+            
             uiWhiteBalance();
         }
 
-        private void uiExposure()
-        {
-            var exposureControl = mediaCapture.VideoDeviceController.ExposureControl;
-
-            if (exposureControl.Supported)
-            {
-                ExposureAutoCheckBox.Visibility = Visibility.Visible;
-                ExposureSlider.Visibility = Visibility.Visible;
-
-                ExposureAutoCheckBox.IsChecked = exposureControl.Auto;
-
-                ExposureSlider.Minimum = exposureControl.Min.Ticks;
-                ExposureSlider.Maximum = exposureControl.Max.Ticks;
-                ExposureSlider.StepFrequency = exposureControl.Step.Ticks;
-
-                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
-                var value = exposureControl.Value;
-                ExposureSlider.Value = value.Ticks;
-                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
-            }
-            else
-            {
-                ExposureAutoCheckBox.Visibility = Visibility.Collapsed;
-                ExposureSlider.Visibility = Visibility.Visible;
-                
-                ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Min;
-                ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Brightness.Capabilities.Max;
-                ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Brightness.Capabilities.Step;
-
-                ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
-                double value;
-                mediaCapture.VideoDeviceController.Brightness.TryGetValue(out value);
-                ExposureSlider.Value = (double)value;
-                ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
-            }
-        }
+       
 
         private void uiWhiteBalance()
         {
@@ -397,14 +354,7 @@ namespace UP
             if (whiteBalanceControl.Supported)
             {
                 WbSlider.Visibility = Visibility.Visible;
-                WbComboBox.Visibility = Visibility.Visible;
-
-                if (WbComboBox.ItemsSource == null)
-                {
-                    WbComboBox.ItemsSource = Enum.GetValues(typeof(ColorTemperaturePreset)).Cast<ColorTemperaturePreset>();
-                }
-
-                WbComboBox.SelectedItem = whiteBalanceControl.Preset;
+                
 
                 if (whiteBalanceControl.Max - whiteBalanceControl.Min > whiteBalanceControl.Step)
                 {
@@ -424,7 +374,7 @@ namespace UP
             }
             else
             {
-                WbComboBox.Visibility = Visibility.Collapsed;
+                
                 if (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Supported)
                 {
                     WbSlider.Visibility = Visibility.Visible;
@@ -449,18 +399,9 @@ namespace UP
                 }
             }
         }
-        private /*async*/ void ExposureSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
-        {
-            double xd = ExposureSlider.Value; // (sender as Slider).Value;
 
-            // var value = TimeSpan.FromTicks((long)(sender as Slider).Value);
-            mediaCapture.VideoDeviceController.Exposure.TrySetValue(ExposureSlider.Value);
-            mediaCapture.VideoDeviceController.Exposure.TrySetValue(mediaCapture.VideoDeviceController.Exposure.Capabilities.Min);
-            // mediaCapture.VideoDeviceController.Exposure.TrySetValue(xd);
 
-            // await mediaCapture.VideoDeviceController.Exposure.TrySetValue(xd);
-            // await mediaCapture.VideoDeviceController.ExposureControl.SetValueAsync(value);
-        }
+       
 
         private async void ExposureCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
@@ -484,32 +425,15 @@ namespace UP
             var autoWb = ((sender as CheckBox).IsChecked == true);
             mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(autoWb);
         }
-        private async void CafFocusRadioButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (!isPreviewing)
-            {
-                // Autofocus only supported while preview stream is running.
-                return;
-            }
 
-            var focusControl = mediaCapture.VideoDeviceController.FocusControl;
-            await focusControl.UnlockAsync();
-            var settings = new FocusSettings { Mode = FocusMode.Continuous, AutoFocusRange = AutoFocusRange.FullRange };
-            focusControl.Configure(settings);
-            await focusControl.FocusAsync();
+        private void ContrastCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            
         }
 
-        private async void WbComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SaturationCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            if (!isPreviewing)
-            {
-                // Do not set white balance values unless the preview stream is running.
-                return;
-            }
-
-            var selected = (ColorTemperaturePreset)WbComboBox.SelectedItem;
-            WbSlider.IsEnabled = (selected == ColorTemperaturePreset.Manual);
-            await mediaCapture.VideoDeviceController.WhiteBalanceControl.SetPresetAsync(selected);
+            
         }
 
         private async void WbSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
@@ -523,8 +447,38 @@ namespace UP
             double value = (sender as Slider).Value;
             // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
             WbAutoCheckBox.IsChecked = false;
-            if (mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value))
-                WbTextBox.Text = value.ToString();
+            if (mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value)) ;
+                
+        }
+
+        private async void ContrastSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Do not set white balance values unless the preview stream is running.
+                return;
+            }
+
+            double value = (sender as Slider).Value;
+            // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
+            ContrastAutoCheckBox.IsChecked = false;
+            if (mediaCapture.VideoDeviceController.Contrast.TrySetValue(value)) ;
+
+        }
+
+        private async void SaturationSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Do not set white balance values unless the preview stream is running.
+                return;
+            }
+
+            double value = (sender as Slider).Value;
+            // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
+            SaturationAutoCheckBox.IsChecked = false;
+            if (mediaCapture.VideoDeviceController.Exposure.TrySetValue(value)) ;
+
         }
 
         private async Task StartPreviewAsync()
@@ -675,6 +629,17 @@ namespace UP
         {
             takeVideo();
         }
+
+        private void TextBlock_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void TextBlock_SelectionChanged_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
     }
 
     class StreamPropertiesHelper

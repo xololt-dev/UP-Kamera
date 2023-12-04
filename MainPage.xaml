@@ -29,7 +29,6 @@
             Grid.Row="1" 
             Grid.Column="1" 
             Grid.ColumnSpan="4"/>
-        <RadioButton Content="CAF" Name="CafFocusRadioButton" Checked="CafFocusRadioButton_Checked" Grid.Column="0" Grid.Row="1"/>
         <ListBox Name="cameraList" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="0" HorizontalContentAlignment="Stretch" SelectionChanged="cameraList_SelectionChanged">
             <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -37,80 +36,79 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <ComboBox Name="comboBoxFPS" HorizontalContentAlignment="Stretch" Grid.Column="0" Grid.Row="2" Margin="33,0,0,0" SelectionChanged="VideoSettings_Changed">
+        <ComboBox Name="comboBoxFPS" HorizontalContentAlignment="Stretch" Grid.Column="0" Grid.Row="1" Margin="29,291,0,0" SelectionChanged="VideoSettings_Changed">
         </ComboBox>
         <Button
-            Content="Photo"
+            Content="Take photo"
             x:Name="button1"
             Height="100"
             Width="100"
             Grid.Column="3"
             Grid.Row="2"
             HorizontalAlignment="Center"
-            Click="Button1_Click">
+            Click="Button1_Click" Margin="0,55,0,0" Grid.RowSpan="2" VerticalAlignment="Top">
         </Button>
         <Button
-            Content="Film start"
+            Content="Start recording"
             x:Name="button2"
-            
-            Height="100"
-            Width="100"
-            Grid.Column="2"
-            Grid.Row="3"
-            HorizontalAlignment="Center"
-            Click="Button2_Click">
-        </Button>
-        <Button
-            Content="Zrób zdjęcie default"
-            x:Name="button4"
             
             Height="100"
             Width="100"
             Grid.Column="4"
             Grid.Row="2"
             HorizontalAlignment="Center"
-            Click="Button4_Click">
+            Click="Button2_Click" Margin="0,55,0,0" Grid.RowSpan="2" VerticalAlignment="Top">
         </Button>
         <Button
-            Content="Zrób film default"
+            Content="Take photo def"
+            x:Name="button4"
+            
+            Height="100"
+            Width="135"
+            Grid.Column="5"
+            Grid.Row="1"
+            Click="Button4_Click" Margin="10,291,0,0" VerticalAlignment="Top"/>
+        <Button
+            Content="Record video def"
             x:Name="button5"
             
             Height="100"
-            Width="100"
-            Grid.Column="4"
-            Grid.Row="3"
-            HorizontalAlignment="Center"
-            Click="Button5_Click">
-        </Button>
+            Width="135"
+            Grid.Column="5"
+            Grid.Row="1"
+            Click="Button5_Click" Margin="10,406,0,0" VerticalAlignment="Top"/>
         <Button
-            Content="Film stop"
+            Content="Stop recording"
             x:Name="button3"
     
             Height="100"
             Width="100"
-            Grid.Column="3"
-            Grid.Row="3"
-            HorizontalAlignment="Center"
-            Click="Button3_Click">
-        </Button>
+            Grid.Column="5"
+            Grid.Row="2"
+            Click="Button3_Click" Margin="10,55,0,0" Grid.RowSpan="2" VerticalAlignment="Top"/>
         <!--MediaPlayerElement 
             x:Name="mediaPlayerElement" Width="1280" Height="960" AreTransportControlsEnabled="True" Margin="200, 0, 0, 0"
         /-->
         <CaptureElement Name="PreviewControl" Stretch="Uniform" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="1"/>
+        <CheckBox Name="WbAutoCheckBox" Content="Auto" Checked="WbCheckBox_CheckedChanged" Unchecked="WbCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" Margin="10,50,20,0" VerticalAlignment="Top"/>
 
-        <TextBlock Name="WbTextBox" Text="{Binding ElementName=WbSlider,Path=Value}" Visibility="{Binding ElementName=WbSlider,Path=Visibility}" Grid.Row="2" Grid.Column="1" Margin="0,25,0,0"/>
-        <ComboBox Name="WbComboBox" SelectionChanged="WbComboBox_SelectionChanged" Grid.Column="0" Grid.Row="3"/>
-        <TextBlock Name="ExposureTextBlock" Text="{Binding ElementName=ExposureSlider,Path=Value}" Margin="25,800,1400,125" AllowFocusOnInteraction="False" IsTapEnabled="False"/>
-        <CheckBox Name="ExposureAutoCheckBox" Content="Auto" Checked="ExposureCheckBox_CheckedChanged" Unchecked="ExposureCheckBox_CheckedChanged" Margin="0,0,1300,0"/>
-        <CheckBox Name="WbAutoCheckBox" Content="Auto" Checked="WbCheckBox_CheckedChanged" Unchecked="WbCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="2"/>
+        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Change resolution" Margin="10,267,0,0" Grid.Row="1"/>
+        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="White Balance" Margin="407,29,0,0" Grid.Row="2" Grid.Column="1"/>
+        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Contrast" Margin="425,95,0,0" Grid.Row="2" Grid.Column="1" Grid.RowSpan="2"/>
+        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Saturation" Margin="419,52,0,0" Grid.Row="3" Grid.Column="1"/>
         <Slider x:Name="WbSlider" 
                 ValueChanged="WbSlider_ValueChanged"
                 Grid.Column="1" 
-                Grid.Row="2"/>
-        <Slider 
-            x:Name="ExposureSlider" 
-            ValueChanged="ExposureSlider_ValueChanged" 
-            Grid.Column="1"
-            Grid.Row="3"/>
+                Grid.Row="2" Margin="4,55,106,24" Grid.ColumnSpan="2"/>
+        <Slider x:Name="ContrastSlider"
+                ValueChanged="ContrastSlider_ValueChanged"
+                Grid.Column="1"
+                Grid.Row="3" Margin="4,10,106,68" Grid.ColumnSpan="2"/>
+        <Slider x:Name="SaturationSlider"
+                ValueChanged="SaturationSlider_ValueChanged"
+                Grid.Column="1"
+                Grid.Row="3" Margin="4,71,0,0" Height="29" VerticalAlignment="Top"/>
+        <CheckBox Name="ContrastAutoCheckBox" Content="Auto" Checked="ContrastCheckBox_CheckedChanged" Unchecked="ContrastCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,13,20,0" VerticalAlignment="Top"/>
+        <CheckBox Name="SaturationAutoCheckBox" Content="Auto" Checked="SaturationCheckBox_CheckedChanged" Unchecked="SaturationCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,71,20,0" VerticalAlignment="Top"/>
     </Grid>
 </Page>

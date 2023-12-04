@@ -95,7 +95,7 @@
         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Change resolution" Margin="10,267,0,0" Grid.Row="1"/>
         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="White Balance" Margin="407,29,0,0" Grid.Row="2" Grid.Column="1"/>
         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Contrast" Margin="425,95,0,0" Grid.Row="2" Grid.Column="1" Grid.RowSpan="2"/>
-        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Saturation" Margin="419,52,0,0" Grid.Row="3" Grid.Column="1"/>
+        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Exposure" Margin="419,52,0,0" Grid.Row="3" Grid.Column="1"/>
         <Slider x:Name="WbSlider" 
                 ValueChanged="WbSlider_ValueChanged"
                 Grid.Column="1" 
@@ -104,11 +104,11 @@
                 ValueChanged="ContrastSlider_ValueChanged"
                 Grid.Column="1"
                 Grid.Row="3" Margin="4,10,106,68" Grid.ColumnSpan="2"/>
-        <Slider x:Name="SaturationSlider"
-                ValueChanged="SaturationSlider_ValueChanged"
+        <Slider x:Name="ExposureSlider"
+                ValueChanged="ExposureSlider_ValueChanged"
                 Grid.Column="1"
                 Grid.Row="3" Margin="4,71,0,0" Height="29" VerticalAlignment="Top"/>
         <CheckBox Name="ContrastAutoCheckBox" Content="Auto" Checked="ContrastCheckBox_CheckedChanged" Unchecked="ContrastCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,13,20,0" VerticalAlignment="Top"/>
-        <CheckBox Name="SaturationAutoCheckBox" Content="Auto" Checked="SaturationCheckBox_CheckedChanged" Unchecked="SaturationCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,71,20,0" VerticalAlignment="Top"/>
+        <CheckBox Name="ExposureAutoCheckBox" Content="Auto" Checked="ExposureCheckBox_CheckedChanged" Unchecked="ExposureCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,71,20,0" VerticalAlignment="Top"/>
     </Grid>
 </Page>

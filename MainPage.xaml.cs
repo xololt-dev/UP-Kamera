@@ -334,18 +334,15 @@ namespace UP
 
             await StartPreviewAsync();
 
-            //uiExposure();
-
             comboBoxFPS.Items.Clear();
             PopulateStreamPropertiesUI(MediaStreamType.VideoRecord, comboBoxFPS);
 
             var focusControl = mediaCapture.VideoDeviceController.FocusControl;
 
-            
             uiWhiteBalance();
-        }
-
-       
+            uiContrast();
+            uiExposure();
+        }       
 
         private void uiWhiteBalance()
         {
@@ -355,7 +352,6 @@ namespace UP
             {
                 WbSlider.Visibility = Visibility.Visible;
                 
-
                 if (whiteBalanceControl.Max - whiteBalanceControl.Min > whiteBalanceControl.Step)
                 {
 
@@ -374,7 +370,6 @@ namespace UP
             }
             else
             {
-                
                 if (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Supported)
                 {
                     WbSlider.Visibility = Visibility.Visible;
@@ -400,8 +395,93 @@ namespace UP
             }
         }
 
+        private void uiContrast()
+        {
+            if (mediaCapture.VideoDeviceController.Contrast.Capabilities.Supported)
+            {
+                ContrastSlider.Visibility = Visibility.Visible;
 
-       
+                double currentWB = 0;
+                if (mediaCapture.VideoDeviceController.Contrast.Capabilities.Max - mediaCapture.VideoDeviceController.Contrast.Capabilities.Min > mediaCapture.VideoDeviceController.Contrast.Capabilities.Step)
+                {
+                    ContrastSlider.Minimum = mediaCapture.VideoDeviceController.Contrast.Capabilities.Min;
+                    ContrastSlider.Maximum = mediaCapture.VideoDeviceController.Contrast.Capabilities.Max;
+                    ContrastSlider.StepFrequency = mediaCapture.VideoDeviceController.Contrast.Capabilities.Step;
+
+                    ContrastSlider.ValueChanged -= WbSlider_ValueChanged;
+                    mediaCapture.VideoDeviceController.Contrast.TryGetValue(out currentWB);
+                    ContrastSlider.Value = currentWB;
+                    ContrastSlider.ValueChanged += WbSlider_ValueChanged;
+                }
+            }
+            else
+            {
+                ContrastSlider.Visibility = Visibility.Collapsed;
+            }            
+        }
+        private void uiExposure()
+        {
+            var exposureControl = mediaCapture.VideoDeviceController.ExposureControl;
+
+            //if (exposureControl.Supported)
+           // {
+              //  ExposureSlider.Visibility = Visibility.Visible;
+
+                /*
+                if (exposureControl.Max - exposureControl.Min > exposureControl.Step)
+                {
+                    SaturationSlider.Minimum = exposureControl.Min;
+                    SaturationSlider.Maximum = exposureControl.Max;
+                    SaturationSlider.StepFrequency = exposureControl.Step;
+                    
+                    SaturationSlider.ValueChanged -= WbSlider_ValueChanged;
+                    SaturationSlider.Value = exposureControl.Value;
+                    SaturationSlider.ValueChanged += WbSlider_ValueChanged;
+                }
+                else
+                {
+                    WbSlider.Visibility = Visibility.Collapsed;
+                }
+                */
+           // }
+           // else
+           // {
+                if (mediaCapture.VideoDeviceController.Exposure.Capabilities.Supported)
+                {
+                    ExposureSlider.Visibility = Visibility.Visible;
+
+                    double currentWB = 0;
+                    ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Min;
+                    ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Max;
+                    ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Exposure.Capabilities.Step;
+
+                    ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
+                    mediaCapture.VideoDeviceController.Exposure.TryGetValue(out currentWB);
+                    ExposureSlider.Value = currentWB;
+
+                    ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
+                /*
+                    if (mediaCapture.VideoDeviceController.Exposure.Capabilities.Max - mediaCapture.VideoDeviceController.Exposure.Capabilities.Min > mediaCapture.VideoDeviceController.Exposure.Capabilities.Step)
+                    {
+                        ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Min;
+                        ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Max;
+                        ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Exposure.Capabilities.Step;
+
+                        ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
+                        mediaCapture.VideoDeviceController.Exposure.TryGetValue(out currentWB);
+                        ExposureSlider.Value = currentWB;
+
+                        ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
+                    }
+                */
+                }
+                else
+                {
+                    ExposureSlider.Visibility = Visibility.Collapsed;
+                }
+          //  }
+        }
+
 
         private async void ExposureCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
@@ -428,12 +508,14 @@ namespace UP
 
         private void ContrastCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            
-        }
+            if (!isPreviewing)
+            {
+                // Auto exposure only supported while preview stream is running.
+                return;
+            }
 
-        private void SaturationCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            
+            var autoWb = ((sender as CheckBox).IsChecked == true);
+            mediaCapture.VideoDeviceController.Contrast.TrySetAuto(autoWb);
         }
 
         private async void WbSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
@@ -447,7 +529,7 @@ namespace UP
             double value = (sender as Slider).Value;
             // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
             WbAutoCheckBox.IsChecked = false;
-            if (mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value)) ;
+            if (mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value));
                 
         }
 
@@ -462,11 +544,11 @@ namespace UP
             double value = (sender as Slider).Value;
             // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
             ContrastAutoCheckBox.IsChecked = false;
-            if (mediaCapture.VideoDeviceController.Contrast.TrySetValue(value)) ;
+            if (mediaCapture.VideoDeviceController.Contrast.TrySetValue(value));
 
         }
 
-        private async void SaturationSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+        private async void ExposureSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
         {
             if (!isPreviewing)
             {
@@ -476,8 +558,8 @@ namespace UP
 
             double value = (sender as Slider).Value;
             // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
-            SaturationAutoCheckBox.IsChecked = false;
-            if (mediaCapture.VideoDeviceController.Exposure.TrySetValue(value)) ;
+            ExposureAutoCheckBox.IsChecked = false;
+            if (mediaCapture.VideoDeviceController.Exposure.TrySetValue(value));
 
         }
 
@@ -622,7 +704,6 @@ namespace UP
         private void Button4_Click(object sender, RoutedEventArgs e)
         {
             takePhoto();
-            mediaCapture.VideoDeviceController.Brightness.TrySetValue(mediaCapture.VideoDeviceController.Brightness.Capabilities.Min);
         }
 
         private void Button5_Click(object sender, RoutedEventArgs e)

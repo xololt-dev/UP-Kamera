@@ -40,6 +40,16 @@
         <ComboBox Name="comboBoxFPS" HorizontalContentAlignment="Stretch" Grid.Column="0" Grid.Row="2" Margin="33,0,0,0" SelectionChanged="VideoSettings_Changed">
         </ComboBox>
         <Button
+            Content="Refresh cameras"
+            x:Name="button6"
+            Height="100"
+            Width="100"
+            Grid.Column="0"
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            Click="Button6_Click">
+        </Button>
+        <Button
             Content="Photo"
             x:Name="button1"
             Height="100"

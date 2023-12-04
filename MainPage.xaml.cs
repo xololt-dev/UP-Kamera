@@ -65,6 +65,7 @@ namespace UP
             {
                 // No devices on the specified panel support video profiles. .
                 System.Diagnostics.Debug.WriteLine("isnullorempty");
+                return;
             }
 
             MediaCaptureInitializationSettings settings = new MediaCaptureInitializationSettings();
@@ -432,14 +433,16 @@ namespace UP
                     double currentWB = 0;
                     if (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Max - mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Min > mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Step)
                     {
-
                         WbSlider.Minimum = mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Min;
                         WbSlider.Maximum = mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Max;
                         WbSlider.StepFrequency = mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Step;
 
                         WbSlider.ValueChanged -= WbSlider_ValueChanged;
-                        mediaCapture.VideoDeviceController.WhiteBalance.TryGetValue(out currentWB);
+                        // mediaCapture.VideoDeviceController.WhiteBalance.TryGetValue(out currentWB);
+                        currentWB = (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Max - mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Min) / 2 + mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Min;
                         WbSlider.Value = currentWB;
+                        WbTextBox.Text = currentWB.ToString();
+                        mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(currentWB);
                         WbSlider.ValueChanged += WbSlider_ValueChanged;
                     }
                 }
@@ -674,6 +677,28 @@ namespace UP
         private void Button5_Click(object sender, RoutedEventArgs e)
         {
             takeVideo();
+        }
+
+        private async void Button6_Click(object sender, RoutedEventArgs e)
+        {
+            mediaCapture = new MediaCapture();
+            string videoDeviceId = await GetVideoProfileSupportedDeviceIdAsync(Windows.Devices.Enumeration.Panel.Back);
+
+            if (string.IsNullOrEmpty(videoDeviceId))
+            {
+                // No devices on the specified panel support video profiles. .
+                System.Diagnostics.Debug.WriteLine("isnullorempty");
+                return;
+            }
+
+            /*
+            MediaCaptureInitializationSettings settings = new MediaCaptureInitializationSettings();
+            settings.VideoDeviceId = videoDeviceId;
+            settings.StreamingCaptureMode = StreamingCaptureMode.Video;
+            await mediaCapture.InitializeAsync(settings);
+
+            PopulateStreamPropertiesUI(MediaStreamType.VideoRecord, comboBoxFPS);
+        */
         }
     }
 

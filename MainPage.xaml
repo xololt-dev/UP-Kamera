@@ -91,11 +91,12 @@
         /-->
         <CaptureElement Name="PreviewControl" Stretch="Uniform" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="1"/>
         <CheckBox Name="WbAutoCheckBox" Content="Auto" Checked="WbCheckBox_CheckedChanged" Unchecked="WbCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" Margin="10,50,20,0" VerticalAlignment="Top"/>
-
+        <CheckBox Name="FocusAutoCheckBox" Content="Auto" Checked="FocusCheckBox_CheckedChanged" Unchecked="FocusCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Stretch" Margin="10,10,20,0" VerticalAlignment="Top"/>
         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Change resolution" Margin="10,267,0,0" Grid.Row="1"/>
         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="White Balance" Margin="407,29,0,0" Grid.Row="2" Grid.Column="1"/>
         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Contrast" Margin="425,95,0,0" Grid.Row="2" Grid.Column="1" Grid.RowSpan="2"/>
         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Exposure" Margin="419,52,0,0" Grid.Row="3" Grid.Column="1"/>
+        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Text="Focus" Margin="350,-10,0,0" Grid.Row="2" Grid.Column="1"/>
         <Slider x:Name="WbSlider" 
                 ValueChanged="WbSlider_ValueChanged"
                 Grid.Column="1" 
@@ -108,6 +109,10 @@
                 ValueChanged="ExposureSlider_ValueChanged"
                 Grid.Column="1"
                 Grid.Row="3" Margin="4,71,0,0" Height="29" VerticalAlignment="Top"/>
+        <Slider x:Name="FocusSlider" 
+            ValueChanged="FocusSlider_ValueChanged"
+            Grid.Column="1" 
+            Grid.Row="2" Margin="0,10,0,60"/>
         <CheckBox Name="ContrastAutoCheckBox" Content="Auto" Checked="ContrastCheckBox_CheckedChanged" Unchecked="ContrastCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,13,20,0" VerticalAlignment="Top"/>
         <CheckBox Name="ExposureAutoCheckBox" Content="Auto" Checked="ExposureCheckBox_CheckedChanged" Unchecked="ExposureCheckBox_CheckedChanged" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Margin="10,71,20,0" VerticalAlignment="Top"/>
     </Grid>

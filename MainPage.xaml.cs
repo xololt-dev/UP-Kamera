@@ -31,6 +31,7 @@ using Windows.Media.Devices;
 using Windows.Media.Capture.Frames;
 using Windows.Media;
 using System.Linq.Expressions;
+using System.ServiceModel.Channels;
 
 //Szablon elementu Pusta strona jest udokumentowany na stronie https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x415
 
@@ -342,6 +343,7 @@ namespace UP
             uiWhiteBalance();
             uiContrast();
             uiExposure();
+            uiFocus();
         }       
 
         private void uiWhiteBalance()
@@ -372,6 +374,11 @@ namespace UP
             {
                 if (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.Supported)
                 {
+                    if (mediaCapture.VideoDeviceController.WhiteBalance.Capabilities.AutoModeSupported)
+                        WbAutoCheckBox.Visibility = Visibility.Visible;
+                    else
+                        WbAutoCheckBox.Visibility = Visibility.Collapsed;
+
                     WbSlider.Visibility = Visibility.Visible;
 
                     double currentWB = 0;
@@ -387,6 +394,9 @@ namespace UP
                         WbSlider.Value = currentWB;
                         WbSlider.ValueChanged += WbSlider_ValueChanged;
                     }
+
+                    mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(true);
+                    WbAutoCheckBox.IsChecked = true;
                 }
                 else
                 {
@@ -408,11 +418,18 @@ namespace UP
                     ContrastSlider.Maximum = mediaCapture.VideoDeviceController.Contrast.Capabilities.Max;
                     ContrastSlider.StepFrequency = mediaCapture.VideoDeviceController.Contrast.Capabilities.Step;
 
-                    ContrastSlider.ValueChanged -= WbSlider_ValueChanged;
+                    ContrastSlider.ValueChanged -= ContrastSlider_ValueChanged;
                     mediaCapture.VideoDeviceController.Contrast.TryGetValue(out currentWB);
                     ContrastSlider.Value = currentWB;
-                    ContrastSlider.ValueChanged += WbSlider_ValueChanged;
+                    ContrastSlider.ValueChanged += ContrastSlider_ValueChanged;
                 }
+
+                if (mediaCapture.VideoDeviceController.Contrast.Capabilities.AutoModeSupported)
+                    ContrastAutoCheckBox.Visibility = Visibility.Visible;
+                else
+                    ContrastAutoCheckBox.Visibility = Visibility.Collapsed;
+
+                ContrastAutoCheckBox.IsChecked = mediaCapture.VideoDeviceController.Contrast.TrySetAuto(true);
             }
             else
             {
@@ -421,36 +438,13 @@ namespace UP
         }
         private void uiExposure()
         {
-            var exposureControl = mediaCapture.VideoDeviceController.ExposureControl;
+            if (mediaCapture.VideoDeviceController.Exposure.Capabilities.Supported)
+            {
+                ExposureSlider.Visibility = Visibility.Visible;
+                double currentWB = 0;
 
-            //if (exposureControl.Supported)
-           // {
-              //  ExposureSlider.Visibility = Visibility.Visible;
-
-                /*
-                if (exposureControl.Max - exposureControl.Min > exposureControl.Step)
+                if (mediaCapture.VideoDeviceController.Exposure.Capabilities.Max - mediaCapture.VideoDeviceController.Exposure.Capabilities.Min > mediaCapture.VideoDeviceController.Exposure.Capabilities.Step)
                 {
-                    SaturationSlider.Minimum = exposureControl.Min;
-                    SaturationSlider.Maximum = exposureControl.Max;
-                    SaturationSlider.StepFrequency = exposureControl.Step;
-                    
-                    SaturationSlider.ValueChanged -= WbSlider_ValueChanged;
-                    SaturationSlider.Value = exposureControl.Value;
-                    SaturationSlider.ValueChanged += WbSlider_ValueChanged;
-                }
-                else
-                {
-                    WbSlider.Visibility = Visibility.Collapsed;
-                }
-                */
-           // }
-           // else
-           // {
-                if (mediaCapture.VideoDeviceController.Exposure.Capabilities.Supported)
-                {
-                    ExposureSlider.Visibility = Visibility.Visible;
-
-                    double currentWB = 0;
                     ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Min;
                     ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Max;
                     ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Exposure.Capabilities.Step;
@@ -460,28 +454,54 @@ namespace UP
                     ExposureSlider.Value = currentWB;
 
                     ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
-                /*
-                    if (mediaCapture.VideoDeviceController.Exposure.Capabilities.Max - mediaCapture.VideoDeviceController.Exposure.Capabilities.Min > mediaCapture.VideoDeviceController.Exposure.Capabilities.Step)
-                    {
-                        ExposureSlider.Minimum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Min;
-                        ExposureSlider.Maximum = mediaCapture.VideoDeviceController.Exposure.Capabilities.Max;
-                        ExposureSlider.StepFrequency = mediaCapture.VideoDeviceController.Exposure.Capabilities.Step;
-
-                        ExposureSlider.ValueChanged -= ExposureSlider_ValueChanged;
-                        mediaCapture.VideoDeviceController.Exposure.TryGetValue(out currentWB);
-                        ExposureSlider.Value = currentWB;
-
-                        ExposureSlider.ValueChanged += ExposureSlider_ValueChanged;
-                    }
-                */
                 }
+                
+                if (mediaCapture.VideoDeviceController.Exposure.Capabilities.AutoModeSupported)
+                    ExposureAutoCheckBox.Visibility = Visibility.Visible;
                 else
-                {
-                    ExposureSlider.Visibility = Visibility.Collapsed;
-                }
-          //  }
+                    ExposureAutoCheckBox.Visibility = Visibility.Collapsed;
+
+                ExposureAutoCheckBox.IsChecked = mediaCapture.VideoDeviceController.Exposure.TrySetAuto(true);
+            }
+            else
+            {
+                ExposureSlider.Visibility = Visibility.Collapsed;
+            }
         }
 
+        private void uiFocus()
+        {
+            // var focusControl = mediaCapture.VideoDeviceController.Focus;
+            if (mediaCapture.VideoDeviceController.Focus.Capabilities.Supported)
+            {
+                FocusSlider.Visibility = Visibility.Visible;
+                double currentWB = 0;
+
+                if (mediaCapture.VideoDeviceController.Focus.Capabilities.Max - mediaCapture.VideoDeviceController.Focus.Capabilities.Min > mediaCapture.VideoDeviceController.Focus.Capabilities.Step)
+                {
+                    FocusSlider.Minimum = mediaCapture.VideoDeviceController.Focus.Capabilities.Min;
+                    FocusSlider.Maximum = mediaCapture.VideoDeviceController.Focus.Capabilities.Max;
+                    FocusSlider.StepFrequency = mediaCapture.VideoDeviceController.Focus.Capabilities.Step;
+
+                    FocusSlider.ValueChanged -= FocusSlider_ValueChanged;
+                    mediaCapture.VideoDeviceController.Focus.TryGetValue(out currentWB);
+                    FocusSlider.Value = currentWB;
+
+                    FocusSlider.ValueChanged += FocusSlider_ValueChanged;
+                }
+
+                if (mediaCapture.VideoDeviceController.Exposure.Capabilities.AutoModeSupported)
+                    ExposureAutoCheckBox.Visibility = Visibility.Visible;
+                else
+                    ExposureAutoCheckBox.Visibility = Visibility.Collapsed;
+
+                FocusAutoCheckBox.IsChecked = mediaCapture.VideoDeviceController.Focus.TrySetAuto(true);
+            }
+            else
+            {
+                FocusSlider.Visibility = Visibility.Collapsed;
+            }
+        }
 
         private async void ExposureCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
@@ -492,7 +512,7 @@ namespace UP
             }
 
             var autoExposure = ((sender as CheckBox).IsChecked == true);
-            await mediaCapture.VideoDeviceController.ExposureControl.SetAutoAsync(autoExposure);
+            mediaCapture.VideoDeviceController.Exposure.TrySetAuto(autoExposure);
         }
         private void WbCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
@@ -514,8 +534,20 @@ namespace UP
                 return;
             }
 
-            var autoWb = ((sender as CheckBox).IsChecked == true);
-            mediaCapture.VideoDeviceController.Contrast.TrySetAuto(autoWb);
+            var autoContrast = ((sender as CheckBox).IsChecked == true);
+            mediaCapture.VideoDeviceController.Contrast.TrySetAuto(autoContrast);
+        }
+
+        private void FocusCheckBox_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Auto exposure only supported while preview stream is running.
+                return;
+            }
+
+            var autoContrast = ((sender as CheckBox).IsChecked == true);
+            mediaCapture.VideoDeviceController.Focus.TrySetAuto(autoContrast);
         }
 
         private async void WbSlider_ValueChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
@@ -527,7 +559,6 @@ namespace UP
             }
 
             double value = (sender as Slider).Value;
-            // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
             WbAutoCheckBox.IsChecked = false;
             if (mediaCapture.VideoDeviceController.WhiteBalance.TrySetValue(value));
                 
@@ -542,7 +573,6 @@ namespace UP
             }
 
             double value = (sender as Slider).Value;
-            // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
             ContrastAutoCheckBox.IsChecked = false;
             if (mediaCapture.VideoDeviceController.Contrast.TrySetValue(value));
 
@@ -557,10 +587,21 @@ namespace UP
             }
 
             double value = (sender as Slider).Value;
-            // mediaCapture.VideoDeviceController.WhiteBalance.TrySetAuto(false);
             ExposureAutoCheckBox.IsChecked = false;
-            if (mediaCapture.VideoDeviceController.Exposure.TrySetValue(value));
+            mediaCapture.VideoDeviceController.Exposure.TrySetValue(value);
 
+        }
+
+        private void FocusSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (!isPreviewing)
+            {
+                // Do not set white balance values unless the preview stream is running.
+                return;
+            }
+
+            double value = (sender as Slider).Value;
+            mediaCapture.VideoDeviceController.Focus.TrySetValue(value);
         }
 
         private async Task StartPreviewAsync()
@@ -721,6 +762,7 @@ namespace UP
 
         }
 
+        
     }
 
     class StreamPropertiesHelper
